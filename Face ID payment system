@@ -1,0 +1,86 @@
+//creating datbase
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    face_data BLOB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+//registration point
+<?php
+$host = 'localhost';
+$db = 'my_database';
+$user = 'your_username';
+$pass = 'your_password';
+$charset = 'utf8mb4';
+
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
+
+try {
+    $pdo = new PDO($dsn, $user, $pass, $options);
+} catch (\PDOException $e) {
+    throw new \PDOException($e->getMessage(), (int)$e->getCode());
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'];
+    $faceData = $_POST['face_data']; // This should be base64 encoded image data
+
+    // Store face data securely
+    $stmt = $pdo->prepare('INSERT INTO users (username, face_data) VALUES (?, ?)');
+    $stmt->execute([$username, $faceData]);
+
+    echo "User registered successfully!";
+}
+?>
+//Authentication
+<?php
+$host = 'localhost';
+$db = 'my_database';
+$user = 'your_username';
+$pass = 'your_password';
+$charset = 'utf8mb4';
+
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
+
+try {
+    $pdo = new PDO($dsn, $user, $pass, $options);
+} catch (\PDOException $e) {
+    throw new \PDOException($e->getMessage(), (int)$e->getCode());
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'];
+    $faceData = $_POST['face_data']; // This should be base64 encoded image data
+
+    // Retrieve stored face data
+    $stmt = $pdo->prepare('SELECT face_data FROM users WHERE username = ?');
+    $stmt->execute([$username]);
+    $user = $stmt->fetch();
+
+    if ($user) {
+        // Here you would compare the faceData with the stored faceData
+        // This is where you would implement facial recognition logic
+        // For now, we'll just assume it matches for demonstration purposes
+        if ($user['face_data'] === $faceData) {
+            echo "Authentication successful! Proceed to payment.";
+            // Proceed to payment processing
+        } else {
+            echo "Authentication failed!";
+        }
+    } else {
+        echo "User not found!";
+
+    }
+}
+?>
+//
